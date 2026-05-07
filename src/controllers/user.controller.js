@@ -5,6 +5,26 @@ const { uploadOnCloudinary } = require('../utils/cloudinary.js')
 const { ApiResponse } = require('../utils/apiResponse.js')  
 
 
+const generateAccessAndRefreshToken = async (userId) =>{
+    try {
+        const user = await User.findById(userId)
+        const accessToken = user.generateAccessToken()
+        const refreshToken = user.generateRefreshToken()
+
+        user.refreshToken = refreshToken
+        await user.save({
+            validateBeforeSave: false
+        })
+
+        return { accessToken, refreshToken }
+
+    } catch (err) {
+        throw new ApiError(500, "Failed to generate tokens")
+    }
+}
+
+
+
 const registerUser = asyncHandler(async (req, res) => {
     // got user details from frontend
     // validation - not empty
@@ -96,6 +116,35 @@ const loginUser = asyncHandler(async (req, res) => {
     if (!isPasswordValid) {
         throw new ApiError(401, "Invalid password")
     }
+
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id)
+
+    const loggedInUser = await User.findById(user._id).select(
+        "-password -refreshToken"
+    )
+
+    const option = {
+        httpOnly: true,
+        secure: true
+    }
+
+    return res
+    .status(200)
+    .cookie("accessToken", accessToken, option)
+    .cookie("refreshToken", refreshToken, option)
+    .json(
+        new ApiResponse(
+            200,
+            {
+                user: loggedInUser, accessToken, refreshToken
+            },
+            "User logged in successfully"
+        )
+    )
 })
 
-module.exports = { registerUser, loginUser }
+const logoutUser = asyncHandler(async (req, res) => {
+
+})
+
+module.exports = { registerUser, loginUser, logoutUser }
