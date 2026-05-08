@@ -1,6 +1,6 @@
 const { asyncHandler } = require('../utils/asyncHandler.js')
 const {ApiError} = require('../utils/apiError.js')
-const { user } = require('../models/index.js')
+const { user } = require('../models/user.model.js')
 const { uploadOnCloudinary } = require('../utils/cloudinary.js')
 const { ApiResponse } = require('../utils/apiResponse.js')  
 
