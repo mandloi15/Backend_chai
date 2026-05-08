@@ -298,13 +298,19 @@ const updateUserAvatar = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Failed to upload avatar image")
     }
 
-    await User.findByIdAndUpdate(
+    const user =await User.findByIdAndUpdate(
         req.user?._id,
         {
             $set: {avatar: avatar.url}
         },
         {new: true}
     ).select("-password")
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, user, "Avatar image updated successfully")
+    )
 })
 
 const updateUserCoverImage = asyncHandler(async (req, res) => {
@@ -320,7 +326,7 @@ const updateUserCoverImage = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Failed to upload cover image")
     }
 
-    await User.findByIdAndUpdate(
+    const user = await User.findByIdAndUpdate(
         req.user?._id,
         {
             $set: {coverImage: coverImage.url}
